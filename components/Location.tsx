@@ -82,7 +82,7 @@ export default function Map({
       document.createElement("script");
 
     script.src =
-      "https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=" +
+      "https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=" +
       clientId;
 
     script.async = true;
@@ -122,21 +122,6 @@ export default function Map({
     const url =
       "https://map.kakao.com/?q=" +
       encodeURIComponent(placeName);
-
-    window.open(url, "_blank");
-  }
-
-  /*
-   * 티맵 길찾기
-   */
-  function goTmap() {
-    const url =
-      "https://apis.openapi.sk.com/tmap/app/routes?name=" +
-      encodeURIComponent(placeName) +
-      "&lon=" +
-      longitude +
-      "&lat=" +
-      latitude;
 
     window.open(url, "_blank");
   }
@@ -191,14 +176,6 @@ export default function Map({
           className="map-button"
         >
           카카오맵
-        </button>
-
-        <button
-          type="button"
-          onClick={goTmap}
-          className="map-button"
-        >
-          티맵
         </button>
 
       </div>
