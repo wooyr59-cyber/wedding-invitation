@@ -1,141 +1,208 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
-const ADDRESS = "경기 부천시 원미구 송내대로 239 7층";
-const NAVER_MAP_URL = "https://naver.me/G0DXk3Wa";
+declare global {
+  interface Window {
+    naver: any;
+  }
+}
 
-export default function Location() {
-  const [copied, setCopied] = useState(false);
+interface MapProps {
+  latitude?: number;
+  longitude?: number;
+  placeName?: string;
+  address?: string;
+}
 
-  const handleCopyAddress = async () => {
-    try {
-      await navigator.clipboard.writeText(ADDRESS);
+export default function Map({
+  latitude = 37.5665,
+  longitude = 126.9780,
+  placeName = "예식장",
+  address = "서울특별시 중구 세종대로 110",
+}: MapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
 
-      setCopied(true);
+  useEffect(function () {
+    const clientId =
+      process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
 
-      setTimeout(() => {
-        setCopied(false);
-      }, 1800);
-    } catch (error) {
-      console.error("주소 복사 실패", error);
+    if (!clientId) {
+      console.error(
+        "네이버 지도 Client ID가 설정되지 않았습니다."
+      );
+      return;
     }
-  };
 
-  
+    function initMap() {
+      if (!window.naver || !mapRef.current) {
+        return;
+      }
+
+      const position =
+        new window.naver.maps.LatLng(
+          latitude,
+          longitude
+        );
+
+      const map =
+        new window.naver.maps.Map(
+          mapRef.current,
+          {
+            center: position,
+            zoom: 16,
+            zoomControl: true,
+            zoomControlOptions: {
+              position:
+                window.naver.maps.Position.TOP_RIGHT,
+            },
+          }
+        );
+
+      mapInstanceRef.current = map;
+
+      new window.naver.maps.Marker({
+        position: position,
+        map: map,
+      });
+    }
+
+    // 이미 네이버 지도 API가 로드되어 있는 경우
+    if (
+      window.naver &&
+      window.naver.maps
+    ) {
+      initMap();
+      return;
+    }
+
+    // 네이버 지도 API 로드
+    const script =
+      document.createElement("script");
+
+    script.src =
+      "https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=" +
+      clientId;
+
+    script.async = true;
+
+    script.onload = function () {
+      initMap();
+    };
+
+    script.onerror = function () {
+      console.error(
+        "네이버 지도 API를 불러오지 못했습니다."
+      );
+    };
+
+    document.head.appendChild(script);
+
+    return function () {
+      script.remove();
+    };
+  }, [latitude, longitude]);
+
+  /*
+   * 네이버 지도 길찾기
+   */
+  function goNaverMap() {
+    const url =
+      "https://map.naver.com/p/search/" +
+      encodeURIComponent(placeName);
+
+    window.open(url, "_blank");
+  }
+
+  /*
+   * 카카오맵 길찾기
+   */
+  function goKakaoMap() {
+    const url =
+      "https://map.kakao.com/?q=" +
+      encodeURIComponent(placeName);
+
+    window.open(url, "_blank");
+  }
+
+  /*
+   * 티맵 길찾기
+   */
+  function goTmap() {
+    const url =
+      "https://apis.openapi.sk.com/tmap/app/routes?name=" +
+      encodeURIComponent(placeName) +
+      "&lon=" +
+      longitude +
+      "&lat=" +
+      latitude;
+
+    window.open(url, "_blank");
+  }
+
   return (
-    <section className="bg-[#f8f5f1] px-5 py-24">
-      <div className="mx-auto max-w-[560px]">
+    <section className="map-section">
 
-        {/* 제목 */}
-        <div className="mb-12 text-center">
-          <p className="text-[10px] tracking-[0.35em] text-[#9a8d82]">
-            LOCATION
-          </p>
+      {/* 제목 */}
+      <div className="map-header">
+        <p className="map-subtitle">
+          LOCATION
+        </p>
 
-          <h2 className="mt-5 text-[24px] font-light tracking-[-0.02em] text-[#403a35]">
-            오시는 길
-          </h2>
-        </div>
+        <h2 className="map-title">
+          오시는 길
+        </h2>
+      </div>
 
-        {/* 지도 */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#e9e3dc]">
+      {/* 지도 */}
+      <div
+        ref={mapRef}
+        className="map-container"
+      />
 
-          {/* 실제 지도 들어갈 영역 */}
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="text-center">
+      {/* 장소 정보 */}
+      <div className="map-info">
 
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[#b9aaa0] bg-[#f8f5f1]">
-                <span className="text-[20px]">📍</span>
-              </div>
+        <h3 className="map-place">
+          {placeName}
+        </h3>
 
-              <p className="mt-4 text-[13px] tracking-[0.02em] text-[#665c55]">
-                ○○웨딩홀
-              </p>
-
-              <p className="mt-2 text-[10px] text-[#9a8d82]">
-                지도가 표시될 영역
-              </p>
-
-            </div>
-          </div>
-        </div>
-
-        {/* 장소 정보 */}
-        <div className="mt-10 text-center">
-
-          <h3 className="text-[17px] font-normal tracking-[-0.02em] text-[#403a35]">
-            ○○웨딩홀 3층 ○○홀
-          </h3>
-
-          <p className="mt-3 text-[13px] font-light leading-[1.8] text-[#756b64]">
-            {ADDRESS}
-          </p>
-
-          {/* 주소 복사 */}
-          <button
-            type="button"
-            onClick={handleCopyAddress}
-            className="mt-4 border-b border-[#b9aaa0] pb-1 text-[10px] tracking-[0.08em] text-[#756b64]"
-          >
-            주소 복사
-          </button>
-        </div>
-
-        {/* 오시는 방법 */}
-        <div className="mt-10 border-t border-[#ded7d1] pt-8">
-
-          <div className="flex gap-5">
-            <span className="w-[50px] shrink-0 text-[10px] tracking-[0.08em] text-[#9a8d82]">
-              지하철
-            </span>
-
-            <p className="text-[12px] font-light leading-[1.8] text-[#665c55]">
-              ○호선 ○○역 하차 후<br />
-              ○번 출구에서 도보 약 5분
-            </p>
-          </div>
-
-          <div className="mt-6 flex gap-5">
-            <span className="w-[50px] shrink-0 text-[10px] tracking-[0.08em] text-[#9a8d82]">
-              버스
-            </span>
-
-            <p className="text-[12px] font-light leading-[1.8] text-[#665c55]">
-              ○○정류장 하차 후 도보 약 3분
-            </p>
-          </div>
-
-          <div className="mt-6 flex gap-5">
-            <span className="w-[50px] shrink-0 text-[10px] tracking-[0.08em] text-[#9a8d82]">
-              주차
-            </span>
-
-            <p className="text-[12px] font-light leading-[1.8] text-[#665c55]">
-              건물 내 주차장 이용 가능
-            </p>
-          </div>
-
-        </div>
-
-        {/* 네이버 지도 */}
-        <a
-          href={NAVER_MAP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-10 flex h-12 items-center justify-center border border-[#b9aaa0] text-[11px] tracking-[0.08em] text-[#665c55] transition-colors hover:bg-[#eee9e4]"
-        >
-          네이버 지도에서 보기
-        </a>
+        <p className="map-address">
+          {address}
+        </p>
 
       </div>
 
-      {/* 복사 완료 토스트 */}
-      {copied && (
-        <div className="fixed bottom-8 left-1/2 z-[9999] -translate-x-1/2 rounded-full bg-[#403a35] px-5 py-3 text-[11px] text-white shadow-lg">
-          주소가 복사되었습니다.
-        </div>
-      )}
+      {/* 길찾기 버튼 */}
+      <div className="map-buttons">
+
+        <button
+          type="button"
+          onClick={goNaverMap}
+          className="map-button"
+        >
+          네이버지도
+        </button>
+
+        <button
+          type="button"
+          onClick={goKakaoMap}
+          className="map-button"
+        >
+          카카오맵
+        </button>
+
+        <button
+          type="button"
+          onClick={goTmap}
+          className="map-button"
+        >
+          티맵
+        </button>
+
+      </div>
+
     </section>
   );
 }

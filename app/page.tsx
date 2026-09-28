@@ -11,7 +11,12 @@ export default function Home() {
       <Greeting />
       <WeddingInfo />
       <Gallery />
-      <Location />
+      <Location
+        latitude={37.5665}
+        longitude={126.9780}
+        placeName="소풍웨딩컨벤션"
+        address="경기 부천시 원미구 송내대로 239 7층"
+      />
     </main>
   );
 }
