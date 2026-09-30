@@ -1,37 +1,72 @@
-'use client';
+"use client";
+
+import { useEffect, useState } from "react";
+import Reveal from "@/components/Reveal";
+
+declare global {
+  interface Window {
+    Kakao?: any;
+  }
+}
 
 export default function Share() {
-  const share = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: '유림 & 동우의 결혼식에 초대합니다',
-        text: '소중한 분들을 결혼식에 초대합니다.',
-        url: window.location.href,
+  const [kakaoReady, setKakaoReady] = useState(false);
+
+  useEffect(function () {
+    const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+    if (!key) return;
+
+    let count = 0;
+    const timer = window.setInterval(function () {
+      count += 1;
+      if (window.Kakao) {
+        if (!window.Kakao.isInitialized()) window.Kakao.init(key);
+        setKakaoReady(window.Kakao.isInitialized());
+        window.clearInterval(timer);
+      }
+      if (count >= 20) window.clearInterval(timer);
+    }, 250);
+
+    return function () { window.clearInterval(timer); };
+  }, []);
+
+  function shareKakao() {
+    if (kakaoReady && window.Kakao) {
+      window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: "김동우 ♥ 우유림 결혼합니다.",
+          description: "저희의 소중한 날에 초대합니다.",
+          imageUrl: `${window.location.origin}/images/og-image.jpg`,
+          link: { mobileWebUrl: window.location.href, webUrl: window.location.href }
+        },
+        buttons: [{ title: "청첩장 보기", link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }]
       });
       return;
     }
 
-    await navigator.clipboard.writeText(window.location.href);
-    alert('청첩장 링크가 복사되었습니다.');
-  };
+    if (navigator.share) {
+      navigator.share({ title: "김동우 ♥ 우유림 결혼합니다.", text: "저희의 소중한 날에 초대합니다.", url: window.location.href }).catch(function () {});
+      return;
+    }
+
+    navigator.clipboard.writeText(window.location.href).then(function () {
+      window.alert("청첩장 링크가 복사되었습니다.");
+    });
+  }
 
   return (
-    <footer className="border-t border-[#e8e3de] px-8 py-20 text-center">
-      <p className="mb-6 text-xs tracking-[0.25em] text-[#a39a92]">
-        SHARE
-      </p>
-
-      <button
-        type="button"
-        onClick={share}
-        className="border border-[#bdb4ac] px-6 py-3 text-sm"
-      >
-        청첩장 공유하기
-      </button>
-
-      <p className="mt-12 text-xs text-[#9b9188]">
-        © 2026 YURIM & DONGWOO
-      </p>
-    </footer>
+    <section className="share-section">
+      <Reveal>
+        <p className="eyebrow">SHARE</p>
+        <h2 className="share-title">소중한 분들과 함께해 주세요</h2>
+        <p className="share-copy">청첩장을 카카오톡으로 전해보세요.</p>
+        <button type="button" className="kakao-share" onClick={shareKakao}>
+          <span className="kakao-bubble">●</span>
+          카카오톡 공유하기
+        </button>
+        <p className="share-hint">{kakaoReady ? "카카오톡으로 청첩장을 공유합니다." : "카카오 SDK가 설정되지 않은 경우 기기 공유 기능으로 연결됩니다."}</p>
+      </Reveal>
+    </section>
   );
 }

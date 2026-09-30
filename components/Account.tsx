@@ -1,62 +1,68 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-
-const accounts = [
-  { name: '신랑 동우', bank: '국민은행', number: '000000-00-000000' },
-  { name: '신부 유림', bank: '신한은행', number: '000-000-000000' },
-];
+import { useState } from "react";
+import Reveal from "@/components/Reveal";
+import { CopyIcon, ChevronIcon } from "@/components/Icon";
+import { weddingConfig } from "@/config/wedding";
 
 export default function Account() {
-  const [toast, setToast] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
 
-  const copyAccount = async (number: string) => {
-    await navigator.clipboard.writeText(number);
-    setToast('계좌번호가 복사되었습니다.');
+  function copy(value: string) {
+    navigator.clipboard.writeText(value);
+    setToast("계좌번호가 복사되었습니다.");
+    window.setTimeout(function () { setToast(""); }, 1600);
+  }
 
-    window.setTimeout(() => {
-      setToast('');
-    }, 1800);
-  };
+  const groups = [
+    { id: "groom", title: "신랑측", people: weddingConfig.family.groom },
+    { id: "bride", title: "신부측", people: weddingConfig.family.bride }
+  ];
 
   return (
-    <section className="relative border-t border-[#e8e3de] px-8 py-24">
-      <div className="mb-10 text-center">
-        <p className="mb-3 text-xs tracking-[0.25em] text-[#a39a92]">
-          ACCOUNT
-        </p>
-        <h2 className="text-xl">마음 전하실 곳</h2>
-      </div>
-
-      <div className="space-y-3">
-        {accounts.map((account) => (
-          <div
-            key={account.name}
-            className="flex items-center justify-between border border-[#e5dfd9] bg-white px-4 py-4"
-          >
-            <div className="text-sm leading-6">
-              <p>{account.name}</p>
-              <p className="text-[#817870]">
-                {account.bank} {account.number}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => copyAccount(account.number)}
-              className="border border-[#d4ccc5] px-3 py-2 text-xs"
-            >
-              복사
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[#403a35] px-5 py-3 text-xs text-white shadow-lg">
-          {toast}
+    <section className="paper-section account-section">
+      <Reveal>
+        <p className="eyebrow">ACCOUNT</p>
+        <h2 className="section-title">마음 전하실 곳</h2>
+        <p className="section-desc">축하의 마음을 전하고 싶으신 분들을 위해<br/>계좌번호를 안내드립니다.</p>
+        <div className="account-groups">
+          {groups.map(function (group) {
+            const isOpen = open === group.id;
+            return (
+              <div className="account-group" key={group.id}>
+                <button type="button" className={`account-group-trigger ${isOpen ? "open" : ""}`} onClick={() => setOpen(isOpen ? null : group.id)}>
+                  <span>{group.title}</span>
+                  <ChevronIcon open={isOpen} />
+                </button>
+                {isOpen && (
+                  <div className="account-group-panel">
+                    {group.people.map(function (person) {
+                      return (
+                        <div className="account-detail account-detail-row" key={person.relation}>
+                          <div className="account-person">
+                            <span>{person.label}</span>
+                            <b>{person.name}</b>
+                          </div>
+                          <div className="account-number">
+                            <b>{person.bank}</b>
+                            <span>{person.account}</span>
+                          </div>
+                          <button type="button" onClick={() => copy(person.account)} aria-label={`${person.name} 계좌번호 복사`}>
+                            <CopyIcon />
+                            <span>복사</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+        {toast && <div className="toast">{toast}</div>}
+      </Reveal>
     </section>
   );
 }

@@ -1,44 +1,33 @@
-const contacts = [
-  { label: '신랑', name: '동우', phone: '010-0000-0000' },
-  { label: '신부', name: '유림', phone: '010-0000-0000' },
+"use client";
+
+import { useState } from "react";
+import { weddingConfig } from "@/config/wedding";
+import { MessageIcon, PhoneIcon } from "@/components/Icon";
+
+const people = [
+  { side: "신랑측", relation: "신랑", name: weddingConfig.groom.name, phone: weddingConfig.groom.phone },
+  { side: "신부측", relation: "신부", name: weddingConfig.bride.name, phone: weddingConfig.bride.phone },
 ];
 
 export default function Contact() {
-  return (
-    <section className="border-t border-[#e8e3de] px-8 py-24">
-      <div className="mb-10 text-center">
-        <p className="mb-3 text-xs tracking-[0.25em] text-[#a39a92]">
-          CONTACT
-        </p>
-        <h2 className="text-xl">연락하기</h2>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {contacts.map((contact) => (
-          <div
-            key={contact.label}
-            className="border border-[#e5dfd9] bg-white p-5 text-center"
-          >
-            <p className="text-xs text-[#9b9188]">{contact.label}</p>
-            <p className="mt-2 text-sm">{contact.name}</p>
-
-            <div className="mt-4 flex justify-center gap-2">
-              <a
-                href={`tel:${contact.phone}`}
-                className="border border-[#d4ccc5] px-3 py-2 text-xs"
-              >
-                전화
-              </a>
-              <a
-                href={`sms:${contact.phone}`}
-                className="border border-[#d4ccc5] px-3 py-2 text-xs"
-              >
-                문자
-              </a>
+  const [open, setOpen] = useState(false);
+  return <>
+    <button type="button" className="outline-button contact-open" onClick={() => setOpen(true)}>연락하기</button>
+    {open && <div className="modal-backdrop" onClick={() => setOpen(false)}>
+      <div className="contact-modal" onClick={function (e) { e.stopPropagation(); }}>
+        <button className="modal-close" onClick={() => setOpen(false)} aria-label="닫기">×</button>
+        <p className="eyebrow">CONTACT</p>
+        <h3>연락하기</h3>
+        <div className="contact-groups">
+          {people.map(function (person) { return <div className="contact-row" key={person.side}>
+            <div><span>{person.side}</span><strong>{person.relation} {person.name}</strong></div>
+            <div className="contact-actions">
+              <a href={`tel:${person.phone}`} aria-label="전화하기"><PhoneIcon /></a>
+              <a href={`sms:${person.phone}`} aria-label="문자하기"><MessageIcon /></a>
             </div>
-          </div>
-        ))}
+          </div>; })}
+        </div>
       </div>
-    </section>
-  );
+    </div>}
+  </>;
 }
