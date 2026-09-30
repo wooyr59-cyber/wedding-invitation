@@ -1,11 +1,11 @@
-import Reveal from "@/components/Reveal";
+import ScrollReveal from "@/components/ScrollReveal";
 import Contact from "@/components/Contact";
 import { weddingConfig } from "@/config/wedding";
 
 export default function Greeting() {
   return (
     <section className="paper-section greeting-section">
-      <Reveal className="hero-intro reveal-first">
+      <ScrollReveal className="hero-intro reveal-first">
         <p className="eyebrow">INVITATION</p>
         <h1>소중한 분들을 초대합니다</h1>
         <div className="hero-poem">
@@ -17,7 +17,7 @@ export default function Greeting() {
         <p className="hero-place">{weddingConfig.date.year}. {String(weddingConfig.date.month).padStart(2,"0")}. {String(weddingConfig.date.day).padStart(2,"0")} {weddingConfig.date.dayName}<br/>{weddingConfig.date.time} · {weddingConfig.venue.name} {weddingConfig.venue.hall}</p>
         <div className="flourish">♥</div>
         <Contact />
-      </Reveal>
+      </ScrollReveal>
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Reveal from "@/components/Reveal";
+import ScrollReveal from "@/components/ScrollReveal";
 import { CopyIcon, ChevronIcon } from "@/components/Icon";
 import { weddingConfig } from "@/config/wedding";
 
@@ -22,7 +22,7 @@ export default function Account() {
 
   return (
     <section className="paper-section account-section">
-      <Reveal>
+      <ScrollReveal>
         <p className="eyebrow">ACCOUNT</p>
         <h2 className="section-title">마음 전하실 곳</h2>
         <p className="section-desc">축하의 마음을 전하고 싶으신 분들을 위해<br/>계좌번호를 안내드립니다.</p>
@@ -62,7 +62,7 @@ export default function Account() {
           })}
         </div>
         {toast && <div className="toast">{toast}</div>}
-      </Reveal>
+      </ScrollReveal>
     </section>
   );
 }

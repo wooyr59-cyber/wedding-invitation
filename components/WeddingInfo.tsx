@@ -1,142 +1,178 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Reveal from "@/components/Reveal";
+import ScrollReveal from "@/components/ScrollReveal";
 import { weddingConfig } from "@/config/wedding";
 
-interface Countdown {
+type Countdown = {
   days: number;
   hours: number;
   minutes: number;
   seconds: number;
+};
+
+function getWeddingDate() {
+  var year = weddingConfig.date.year;
+  var month = weddingConfig.date.month - 1;
+  var day = weddingConfig.date.day;
+
+  var time = weddingConfig.date.time;
+
+  var hour = 0;
+  var minute = 0;
+
+  /*
+   * "PM 2:30" 형식 처리
+   */
+  var timeMatch = time.match(/^(AM|PM)\s+(\d+):(\d+)$/i);
+
+  if (timeMatch) {
+    var ampm = timeMatch[1].toUpperCase();
+    hour = Number(timeMatch[2]);
+    minute = Number(timeMatch[3]);
+
+    if (ampm === "PM" && hour !== 12) {
+      hour += 12;
+    }
+
+    if (ampm === "AM" && hour === 12) {
+      hour = 0;
+    }
+  }
+
+  return new Date(year, month, day, hour, minute, 0);
 }
 
 function getCountdown(): Countdown {
-  const year = weddingConfig.date.year;
-  const month = weddingConfig.date.month - 1;
-  const day = weddingConfig.date.day;
+  var now = new Date();
+  var weddingDate = getWeddingDate();
 
-  /*
-   * weddingConfig.date.time이
-   * "14:30" 같은 형태라면 시간까지 반영
-   */
-  const time = weddingConfig.date.time || "00:00";
+  var diff = weddingDate.getTime() - now.getTime();
 
-  const timeParts = time.split(":");
-  const hour = Number(timeParts[0]) || 0;
-  const minute = Number(timeParts[1]) || 0;
-
-  const weddingDate = new Date(
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    0
-  );
-
-  const now = new Date();
-
-  const difference = weddingDate.getTime() - now.getTime();
-
-  if (difference <= 0) {
+  if (diff <= 0) {
     return {
       days: 0,
       hours: 0,
       minutes: 0,
-      seconds: 0
+      seconds: 0,
     };
   }
 
-  const days = Math.floor(
-    difference / (1000 * 60 * 60 * 24)
+  var totalSeconds = Math.floor(diff / 1000);
+
+  var days = Math.floor(totalSeconds / 86400);
+
+  var hours = Math.floor(
+    (totalSeconds % 86400) / 3600
   );
 
-  const hours = Math.floor(
-    (difference / (1000 * 60 * 60)) % 24
+  var minutes = Math.floor(
+    (totalSeconds % 3600) / 60
   );
 
-  const minutes = Math.floor(
-    (difference / (1000 * 60)) % 60
-  );
-
-  const seconds = Math.floor(
-    (difference / 1000) % 60
-  );
+  var seconds = totalSeconds % 60;
 
   return {
     days: days,
     hours: hours,
     minutes: minutes,
-    seconds: seconds
+    seconds: seconds,
   };
 }
 
-function padNumber(value: number, length: number) {
-  return String(value).padStart(length, "0");
-}
-
 export default function WeddingInfo() {
-  const year = weddingConfig.date.year;
-  const monthIndex = weddingConfig.date.month - 1;
-  const day = weddingConfig.date.day;
+  var year = weddingConfig.date.year;
+  var monthIndex = weddingConfig.date.month - 1;
+  var day = weddingConfig.date.day;
 
-  const first = new Date(year, monthIndex, 1).getDay();
-  const last = new Date(year, monthIndex + 1, 0).getDate();
+  /*
+   * 달력 계산
+   */
+  var first = new Date(
+    year,
+    monthIndex,
+    1
+  ).getDay();
 
-  const days: Array<number | null> = [];
+  var last = new Date(
+    year,
+    monthIndex + 1,
+    0
+  ).getDate();
 
-  for (let i = 0; i < first; i += 1) {
+  var days: Array<number | null> = [];
+
+  for (var i = 0; i < first; i += 1) {
     days.push(null);
   }
 
-  for (let i = 1; i <= last; i += 1) {
-    days.push(i);
+  for (var j = 1; j <= last; j += 1) {
+    days.push(j);
   }
 
   /*
-   * 실시간 카운트다운
+   * D-Day
+   *
+   * 날짜 기준으로 계산
    */
-  const [countdown, setCountdown] = useState<Countdown>(
-    getCountdown()
+  var weddingDate = new Date(
+    year,
+    monthIndex,
+    day
   );
 
+  var today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  var diff = Math.ceil(
+    (weddingDate.getTime() - today.getTime()) /
+      86400000
+  );
+
+  var dday =
+    diff >= 0
+      ? `D-${diff}`
+      : `D+${Math.abs(diff)}`;
+
+  /*
+   * 중요!
+   *
+   * 서버와 클라이언트의 첫 렌더링을
+   * 동일하게 만들기 위해 0으로 시작한다.
+   */
+  var countdownState = useState<Countdown>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  var countdown = countdownState[0];
+  var setCountdown = countdownState[1];
+
+  /*
+   * 브라우저에서 렌더링된 이후
+   * 실제 카운트다운 시작
+   */
   useEffect(function () {
-    const timer = window.setInterval(function () {
-      setCountdown(getCountdown());
-    }, 1000);
+    setCountdown(getCountdown());
+
+    var timer = window.setInterval(
+      function () {
+        setCountdown(getCountdown());
+      },
+      1000
+    );
 
     return function () {
       window.clearInterval(timer);
     };
   }, []);
 
-  /*
-   * 기존 D-Day
-   */
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const weddingDate = new Date(
-    year,
-    monthIndex,
-    day
-  );
-
-  weddingDate.setHours(0, 0, 0, 0);
-
-  const diff = Math.ceil(
-    (weddingDate.getTime() - today.getTime()) / 86400000
-  );
-
-  const dday =
-    diff >= 0
-      ? `D-${diff}`
-      : `D+${Math.abs(diff)}`;
-
   return (
     <section className="paper-section calendar-section">
-      <Reveal>
+      <ScrollReveal>
 
         <p className="eyebrow">
           WEDDING DAY
@@ -146,32 +182,40 @@ export default function WeddingInfo() {
           우리의 결혼식
         </h2>
 
-        {/* =========================
-            CALENDAR
-        ========================= */}
+        {/* Calendar */}
         <div className="calendar-card">
 
           <div className="calendar-head">
+
             <span>
               {new Date(
                 year,
                 monthIndex,
                 1
-              ).toLocaleString("en-US", {
-                month: "long"
-              }).toUpperCase()}
+              )
+                .toLocaleString(
+                  "en-US",
+                  {
+                    month: "long",
+                  }
+                )
+                .toUpperCase()}
             </span>
 
-            <b>
-              {year}.{" "}
-              {String(
-                weddingConfig.date.month
-              ).padStart(2, "0")}.{" "}
-              {String(day).padStart(2, "0")}
-            </b>
+            <b>{year}.{" "}
+            {String(
+              weddingConfig.date.month
+            ).padStart(2, "0")}
+            .{" "}
+            {String(day).padStart(
+              2,
+              "0"
+            )}</b>
+
           </div>
 
           <div className="week-row">
+
             {[
               "SUN",
               "MON",
@@ -179,7 +223,7 @@ export default function WeddingInfo() {
               "WED",
               "THU",
               "FRI",
-              "SAT"
+              "SAT",
             ].map(function (d) {
               return (
                 <span key={d}>
@@ -187,95 +231,116 @@ export default function WeddingInfo() {
                 </span>
               );
             })}
+
           </div>
 
           <div className="calendar-grid">
-            {days.map(function (d, i) {
+
+            {days.map(function (
+              d,
+              index
+            ) {
               return (
                 <span
-                  key={i}
+                  key={index}
                   className={
                     d === day
                       ? "wedding-day"
                       : d === null
-                        ? "empty"
-                        : ""
+                      ? "empty"
+                      : ""
                   }
                 >
                   {d}
                 </span>
               );
             })}
+
           </div>
 
         </div>
 
-        {/* =========================
-            REAL TIME COUNTDOWN
-        ========================= */}
+        {/* Real Countdown */}
         <div className="real-countdown">
 
           <div className="countdown-timer">
 
+            {/* DAYS */}
             <div className="countdown-item">
+
               <span className="countdown-number">
-                {padNumber(countdown.days, 3)}
+                {String(
+                  countdown.days
+                ).padStart(2, "0")}
               </span>
 
               <span className="countdown-label">
                 DAYS
               </span>
+
             </div>
 
             <span className="countdown-colon">
               :
             </span>
 
+            {/* HOUR */}
             <div className="countdown-item">
+
               <span className="countdown-number">
-                {padNumber(countdown.hours, 2)}
+                {String(
+                  countdown.hours
+                ).padStart(2, "0")}
               </span>
 
               <span className="countdown-label">
                 HOUR
               </span>
+
             </div>
 
             <span className="countdown-colon">
               :
             </span>
 
+            {/* MIN */}
             <div className="countdown-item">
+
               <span className="countdown-number">
-                {padNumber(countdown.minutes, 2)}
+                {String(
+                  countdown.minutes
+                ).padStart(2, "0")}
               </span>
 
               <span className="countdown-label">
                 MIN
               </span>
+
             </div>
 
             <span className="countdown-colon">
               :
             </span>
 
+            {/* SEC */}
             <div className="countdown-item">
+
               <span className="countdown-number">
-                {padNumber(countdown.seconds, 2)}
+                {String(
+                  countdown.seconds
+                ).padStart(2, "0")}
               </span>
 
               <span className="countdown-label">
                 SEC
               </span>
+
             </div>
 
           </div>
 
           <p className="countdown-message">
-            <strong>
-              동우, 유림
-            </strong>
-            의 결혼식이{" "}
+            동우, 유림의 결혼식이{" "}
             <strong>
               {countdown.days}일
             </strong>{" "}
@@ -284,7 +349,7 @@ export default function WeddingInfo() {
 
         </div>
 
-      </Reveal>
+      </ScrollReveal>
     </section>
   );
 }

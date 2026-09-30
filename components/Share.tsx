@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Reveal from "@/components/Reveal";
+import ScrollReveal from "@/components/ScrollReveal";
 
 declare global {
   interface Window {
@@ -57,16 +57,16 @@ export default function Share() {
 
   return (
     <section className="share-section">
-      <Reveal>
+      <ScrollReveal>
         <p className="eyebrow">SHARE</p>
-        <h2 className="share-title">소중한 분들과 함께해 주세요</h2>
+        {/* <h2 className="share-title">소중한 분들과 함께해 주세요</h2> */}
         <p className="share-copy">청첩장을 카카오톡으로 전해보세요.</p>
         <button type="button" className="kakao-share" onClick={shareKakao}>
           <span className="kakao-bubble">●</span>
           카카오톡 공유하기
         </button>
         <p className="share-hint">{kakaoReady ? "카카오톡으로 청첩장을 공유합니다." : "카카오 SDK가 설정되지 않은 경우 기기 공유 기능으로 연결됩니다."}</p>
-      </Reveal>
+      </ScrollReveal>
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Reveal from "@/components/Reveal";
+import ScrollReveal from "@/components/ScrollReveal";
 import { weddingConfig } from "@/config/wedding";
 
 declare global { interface Window { naver: any; } }
@@ -34,7 +34,7 @@ export default function Location() {
   function openTmap() { window.open("https://tmap.life/", "_blank"); }
   function openKakao() { window.open("https://map.kakao.com/?q=" + encodeURIComponent(weddingConfig.venue.name), "_blank"); }
 
-  return <section className="location-section"><Reveal>
+  return <section className="location-section"><ScrollReveal>
     <p className="eyebrow">LOCATION</p>
     <h2 className="section-title">오시는 길</h2>
     <div className="map-wrap" ref={mapRef}><div className="map-placeholder">지도를 불러오는 중입니다.</div></div>
@@ -49,5 +49,5 @@ export default function Location() {
       <p><b>버스</b> 송내역 정류장 하차 후 셔틀/도보 이용</p>
       <p><b>주차</b> 웨딩홀 지하 주차장 이용 가능</p>
     </div>
-  </Reveal></section>;
+  </ScrollReveal></section>;
 }

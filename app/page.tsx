@@ -33,7 +33,6 @@ export default function Home() {
     <Guestbook />
 
     {/* 마무리 */}
-    <div className="dark-break" />
     <Closing />
 
     {/* 마음전하실 곳 */}
@@ -43,6 +42,6 @@ export default function Home() {
     <Share />
 
     {/* 푸터 */}
-    <footer className="footer">{new Date().getFullYear()} · DONGWOO &amp; YURIM</footer>
+    <footer className="footer">2027 · DONGWOO &amp; YURIM</footer>
   </main>;
 }
